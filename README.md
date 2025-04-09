@@ -60,41 +60,47 @@ Test: Validate successful login with valid credentials.
 - Asserts response is 200 OK with a valid token
 
 ============================================================
-DEPLOYING .NET BACKEND & TESTS ON AWS
+DEPLOYING .NET BACKEND & TESTS ON AWS (WINDOWS HOSTING)
 ============================================================
 
-Option: Deploy to AWS Elastic Beanstalk (.NET on Linux)
+Option: Deploy to AWS EC2 with Windows Server & IIS
 ------------------------------------------------------------
 
-1. **Prerequisites**:
-   - AWS Account
-   - AWS CLI installed & configured
-   - .NET 7 SDK installed
-   - Docker (optional for container-based deployment)
+1. **Launch a Windows EC2 Instance**:
+   - Choose AMI: *Microsoft Windows Server with IIS installed*
+   - Ensure ports 80 (HTTP) and 443 (HTTPS) are open in security group
 
-2. **Publish the .NET Backend**:
+2. **Remote Desktop (RDP) into the Instance**:
+   - Download & install [.NET 7 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+   - Use RDP or WinSCP to upload your backend app
+
+3. **Publish Your App Locally**:
    ```bash
-   dotnet publish -c Release -o ./publish
+   dotnet publish -c Release -r win-x64 -o ./publish
    ```
 
-3. **Create Elastic Beanstalk Application**:
-   ```bash
-   eb init -p "dotnet-core" my-backend-app --region us-east-1
-   eb create my-backend-env
+4. **Copy Published App to IIS Directory on Server**:
+   - Path: `C:\inetpub\wwwroot\MyApp`
+
+5. **Configure IIS**:
+   - Open IIS Manager
+   - Add a new Website → Point to `MyApp` folder
+   - Use Application Pool → No Managed Code
+   - Bind to HTTP or HTTPS ports
+
+6. **Set Environment Variables (Optional)**:
+   - Windows → System Properties → Environment Variables
+   - Add keys such as:
+     - `ConnectionStrings__DefaultConnection`
+     - `JWT__Key`
+
+7. **Restart IIS**:
+   ```powershell
+   iisreset
    ```
 
-4. **Deploy the App**:
-   ```bash
-   eb deploy
-   eb open  # to open in browser
-   ```
-
-5. **Environment Variables**:
-   Set connection strings and JWT secret in Beanstalk -> Configuration -> Software -> Environment Properties.
-
-6. **PostgreSQL DB**:
-   - Use Amazon RDS PostgreSQL
-   - Update `appsettings.json` or `DefaultConnection` accordingly
+8. **Test**
+   - Open browser with public EC2 DNS/IP → App should be running
 
 ------------------------------------------------------------
 Running Unit Tests on AWS CodeBuild (Optional CI/CD)
