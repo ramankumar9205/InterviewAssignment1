@@ -58,3 +58,57 @@ Test: Validate successful login with valid credentials.
 - Mocks UserManager & SignInManager using Moq
 - Tests AuthController.Login() method
 - Asserts response is 200 OK with a valid token
+
+============================================================
+DEPLOYING .NET BACKEND & TESTS ON AWS
+============================================================
+
+Option: Deploy to AWS Elastic Beanstalk (.NET on Linux)
+------------------------------------------------------------
+
+1. **Prerequisites**:
+   - AWS Account
+   - AWS CLI installed & configured
+   - .NET 7 SDK installed
+   - Docker (optional for container-based deployment)
+
+2. **Publish the .NET Backend**:
+   ```bash
+   dotnet publish -c Release -o ./publish
+   ```
+
+3. **Create Elastic Beanstalk Application**:
+   ```bash
+   eb init -p "dotnet-core" my-backend-app --region us-east-1
+   eb create my-backend-env
+   ```
+
+4. **Deploy the App**:
+   ```bash
+   eb deploy
+   eb open  # to open in browser
+   ```
+
+5. **Environment Variables**:
+   Set connection strings and JWT secret in Beanstalk -> Configuration -> Software -> Environment Properties.
+
+6. **PostgreSQL DB**:
+   - Use Amazon RDS PostgreSQL
+   - Update `appsettings.json` or `DefaultConnection` accordingly
+
+------------------------------------------------------------
+Running Unit Tests on AWS CodeBuild (Optional CI/CD)
+------------------------------------------------------------
+1. **Create buildspec.yml**:
+   ```yaml
+   version: 0.2
+   phases:
+     install:
+       runtime-versions:
+         dotnet: 7.0
+     build:
+       commands:
+         - dotnet test
+   ```
+2. **Push to CodeCommit or GitHub**
+3. **Set up AWS CodeBuild project** to pull the repo and run the tests
